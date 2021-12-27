@@ -10,28 +10,31 @@ namespace ThreadIO
 	namespace details
 	{
 
-		template <typename T, typename Tg>
-		class ThreadIOBase
-		{
-
-			using Type = T;
-			using TagType = Tg;
-
-		public:
-
-			ThreadIOBase()
-			{
-			}
-
-			~ThreadIOBase()
-			{
-			}
-
-		private:
-
-		};
-
 	}
+
+
+
+	template <typename T, typename Tg>
+	class ThreadIOBase
+	{
+
+		using Type = T;
+		using TagType = Tg;
+
+	public:
+
+		ThreadIOBase()
+		{
+		}
+
+		~ThreadIOBase()
+		{
+		}
+
+	private:
+
+	};
+
 
 
 	template<typename Tg>
