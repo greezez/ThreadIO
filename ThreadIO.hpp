@@ -1,4 +1,8 @@
 #pragma once
+#ifndef THREAD_IO_HPP
+#define THREAD_IO_HPP
+
+#include <atomic>
 
 namespace ThreadIO
 {
@@ -14,6 +18,7 @@ namespace ThreadIO
 			using TagType = Tg;
 
 		public:
+
 			ThreadIOBase()
 			{
 			}
@@ -29,9 +34,14 @@ namespace ThreadIO
 	}
 
 
+	template<typename Tg>
 	class ThreadIO
 	{
+
+		using TagType = Tg;
+
 	public:
+
 		ThreadIO()
 		{
 		}
@@ -46,3 +56,7 @@ namespace ThreadIO
 
 
 }
+
+
+
+#endif // !THREAD_IO_HPP
