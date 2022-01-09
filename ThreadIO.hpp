@@ -13,6 +13,7 @@ namespace ThreadIO
 		BadAlloc,
 	};
 
+
 	class ErrorCode
 	{
 	public:
@@ -47,7 +48,7 @@ namespace ThreadIO
 
 		public:
 
-			List(size_t size, ErrorCode& ec) : cuurent(nullptr), head(nullptr), tail(nullptr)
+			List(size_t size, ErrorCode& ec) : current(nullptr), head(nullptr), tail(nullptr)
 			{
 			}
 
@@ -55,9 +56,21 @@ namespace ThreadIO
 			{
 			}
 
+			T& current() {}
+
+			updateCurrent() {}
+
+			bool addAfterCurrent() {}
+			bool deleteAfterCurrent() {}
+
+			void resetCurrent() {}
+
+			template<typename Fn>
+			void forEach(Fn fn) {}
+
 		private:
 
-			Node* cuurent;
+			Node* current;
 
 			Node* head;
 			Node* tail;
@@ -66,29 +79,6 @@ namespace ThreadIO
 
 
 	}
-
-
-
-	template <typename T, typename Tg>
-	class ThreadIOBase
-	{
-
-		using Type = T;
-		using TagType = Tg;
-
-	public:
-
-		ThreadIOBase()
-		{
-		}
-
-		~ThreadIOBase()
-		{
-		}
-
-	private:
-
-	};
 
 
 
