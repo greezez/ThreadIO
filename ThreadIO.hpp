@@ -7,34 +7,6 @@
 namespace ThreadIO
 {
 
-	enum class ErrorCodeList : uint8_t
-	{
-		Success = 0,
-		BadAlloc,
-	};
-
-
-
-	class ErrorCode
-	{
-	public:
-
-		ErrorCode() : code(ErrorCodeList::Success)
-		{
-		}
-
-		~ErrorCode()
-		{
-		}
-
-	private:
-
-		ErrorCodeList code;
-
-	};
-
-
-
 	namespace details
 	{
 
@@ -50,14 +22,25 @@ namespace ThreadIO
 
 		public:
 
-
-			List(size_t size, ErrorCode& ec) : current_(nullptr), head_(nullptr), size_(0)
+			List(size_t size, bool& success) : current_(nullptr), head_(nullptr), size_(0)
 			{
+				Node* last = head_;
+
+				for (size_t i = 0; i < size; i++)
+				{
+					if (!push())
+					{
+						clear();
+						success = false;
+						return;
+					}
+				}
 			}
 
 
 			~List()
 			{
+				clear();
 			}
 
 
@@ -68,10 +51,26 @@ namespace ThreadIO
 
 			T& front()
 			{
-				return head_->item;;
+				return head_->item;
 			}
 
-			void popFront()
+			bool push() noexcept
+			{
+				Node* node = createNode();
+
+				if (node == nullptr)
+					return false;
+			
+				node->next = head_;
+				head_ = node;
+
+				size_++;
+
+				return true;
+			}
+
+
+			void pop()
 			{
 				if (head_ == nullptr)
 					return;
@@ -83,6 +82,7 @@ namespace ThreadIO
 
 				delete node;
 			}
+
 
 			void updateCurrent() noexcept
 			{
@@ -107,6 +107,8 @@ namespace ThreadIO
 				current_->next = node;
 				current_ = node;
 
+				size_++;
+
 				return true;
 			}
 
@@ -122,7 +124,6 @@ namespace ThreadIO
 
 					node = node->next;
 				}
-
 			}
 
 
@@ -138,6 +139,7 @@ namespace ThreadIO
 					delete node;
 				}
 
+				size_ = 0;
 			}
 
 
@@ -156,8 +158,6 @@ namespace ThreadIO
 				if (node == nullptr)
 					return nullptr;
 
-				size_++;
-
 				return node;
 			}
 
@@ -170,7 +170,6 @@ namespace ThreadIO
 			size_t size_;
 
 		};
-
 
 	}
 
