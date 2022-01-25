@@ -1,6 +1,6 @@
 #pragma once
-#ifndef THREAD_IO_HPP
-#define THREAD_IO_HPP
+#ifndef THREAD_IO_GREEZEZ_HPP
+#define THREAD_IO_GREEZEZ_HPP
 
 #include <atomic>
 
@@ -35,6 +35,9 @@ namespace ThreadIO
 						return;
 					}
 				}
+
+				current_ = head_;
+				success = true;
 			}
 
 
@@ -200,4 +203,4 @@ namespace ThreadIO
 
 
 
-#endif // !THREAD_IO_HPP
+#endif // !THREAD_IO_GREEZEZ_HPP
