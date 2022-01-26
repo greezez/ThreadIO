@@ -24,8 +24,6 @@ namespace ThreadIO
 
 			List(size_t size, bool& success) : current_(nullptr), head_(nullptr), size_(0)
 			{
-				Node* last = head_;
-
 				for (size_t i = 0; i < size; i++)
 				{
 					if (!push())
@@ -56,6 +54,7 @@ namespace ThreadIO
 			{
 				return head_->item;
 			}
+
 
 			bool push() noexcept
 			{
@@ -101,6 +100,15 @@ namespace ThreadIO
 
 			bool addAndUpdateCurrent() noexcept
 			{
+				if (head_ == nullptr)
+				{
+					if (!push())
+						return false;
+
+					current_ = head_;
+					return true;
+				}
+
 				Node* node = createNode();
 
 				if (node == nullptr)
@@ -143,6 +151,7 @@ namespace ThreadIO
 				}
 
 				size_ = 0;
+				current_ = nullptr;
 			}
 
 
@@ -184,6 +193,7 @@ namespace ThreadIO
 
 		using TagType = Tg;
 
+
 	public:
 
 		ThreadIO()
@@ -193,6 +203,7 @@ namespace ThreadIO
 		~ThreadIO()
 		{
 		}
+
 
 	private:
 
