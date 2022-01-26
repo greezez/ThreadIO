@@ -22,7 +22,8 @@ namespace ThreadIO
 
 		public:
 
-			List(size_t size, bool& success) : current_(nullptr), head_(nullptr), size_(0)
+			List(size_t size, bool& success) noexcept : 
+				current_(nullptr), head_(nullptr), size_(0)
 			{
 				for (size_t i = 0; i < size; i++)
 				{
@@ -66,13 +67,16 @@ namespace ThreadIO
 				node->next = head_;
 				head_ = node;
 
+				if (current_ == nullptr)
+					current_ = head_;
+
 				size_++;
 
 				return true;
 			}
 
 
-			void pop()
+			void pop() noexcept
 			{
 				if (head_ == nullptr)
 					return;
@@ -98,7 +102,7 @@ namespace ThreadIO
 			}
 
 
-			bool addAndUpdateCurrent() noexcept
+			bool insertAndUpdateCurrent() noexcept
 			{
 				if (head_ == nullptr)
 				{
@@ -180,6 +184,60 @@ namespace ThreadIO
 			Node* head_;
 
 			size_t size_;
+
+		};
+
+
+
+		class Data
+		{
+		public:
+			Data(size_t size, bool& success) noexcept : 
+				data_(nullptr), size_(size), offset_(0), numOfAcquired_(0)
+			{
+			}
+
+			~Data()
+			{
+			}
+
+			void* acquire(size_t size) noexcept
+			{
+			}
+
+			void release() 
+			{}
+
+			size_t numOfAcquired()
+			{}
+
+			const void* get()
+			{}
+
+		private:
+
+			void* data_;
+			size_t size_;
+			size_t offset_;
+
+			std::atomic_size_t numOfAcquired_;
+
+		};
+
+
+
+		class DataPool
+		{
+		public:
+			DataPool()
+			{
+			}
+
+			~DataPool()
+			{
+			}
+
+		private:
 
 		};
 
