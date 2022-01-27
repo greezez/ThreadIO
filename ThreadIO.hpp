@@ -186,7 +186,9 @@ namespace ThreadIO
 
 		};
 		
+
 		class DataPool;
+
 
 		class UniqueData
 		{
@@ -195,15 +197,89 @@ namespace ThreadIO
 
 		public:
 
-			UniqueData()
+			UniqueData() noexcept : 
+				data_(nullptr), numOfAcquired_(nullptr), isHeap_(false)
+			{}
+
+
+			UniqueData(const UniqueData& other) = delete;
+			UniqueData& operator=(const UniqueData& other) = delete;
+
+
+			UniqueData(UniqueData&& other) noexcept :
+				data_(other.data_), numOfAcquired_(other.numOfAcquired_), isHeap_(other.isHeap_)
 			{
+				other.data_ = nullptr;
+				other.numOfAcquired_ = nullptr;
+				other.isHeap_ = false;
 			}
+
+
+			UniqueData& operator=(UniqueData&& other) noexcept
+			{
+				data_ = other.data_;
+				numOfAcquired_ = other.numOfAcquired_;
+				isHeap_ = other.isHeap_;
+
+				other.data_ = nullptr;
+				other.numOfAcquired_ = nullptr;
+				other.isHeap_ = false;
+
+				return *this;
+			}
+
 
 			~UniqueData()
 			{
+				release();
 			}
 
+
+			void* get() noexcept
+			{
+				return data_;
+			}
+
+
+			void release() noexcept
+			{
+				if (!isValid())
+					return;
+
+				if (isHeap_)
+					std::free(data_);
+				else
+					numOfAcquired_->fetch_sub(1, std::memory_order_release);
+
+				data_ = nullptr;
+				numOfAcquired_ = nullptr;
+			}
+
+
+			bool isValid()
+			{
+				if (isHeap_)
+					return data_ != nullptr;
+
+				return data_ != nullptr and numOfAcquired_ != nullptr;
+			}
+
+
 		private:
+
+			void set(void* data, std::atomic_size_t* numOfAcquired, bool isHeap = false) noexcept
+			{
+				data_ = data;
+				numOfAcquired_ = numOfAcquired;
+				isHeap_ = isHeap;
+			}
+
+
+		private:
+
+			void* data_;
+			std::atomic_size_t* numOfAcquired_;
+			bool isHeap_;
 
 		};
 
@@ -223,10 +299,17 @@ namespace ThreadIO
 			{
 			}
 
-			bool tryAcquire() noexcept {}
-			bool acquire() noexcept {}
+			bool tryAcquire(UniqueData& data, size_t size) noexcept 
+			{}
 
-			bool tryHeapAcquire() noexcept {}
+
+			bool acquire(UniqueData& data, size_t size) noexcept 
+			{}
+
+
+			bool tryHeapAcquire(UniqueData& data, size_t size) noexcept 
+			{}
+
 
 		private:
 
