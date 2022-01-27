@@ -39,6 +39,10 @@ namespace ThreadIO
 				success = true;
 			}
 
+			List() noexcept :
+				current_(nullptr), head_(nullptr), size_(0)
+			{}
+
 
 			~List()
 			{
@@ -144,6 +148,11 @@ namespace ThreadIO
 			}
 
 
+			void resetCurrent()
+			{
+				current_ = head_;
+			}
+
 			template<typename Fn>
 			void forEach(Fn fn)
 			{
@@ -177,7 +186,7 @@ namespace ThreadIO
 		struct Data
 		{
 
-			Data() noexcept : data(nullptr), offset(0), numOfAcqured(0) 
+			Data() noexcept : data(nullptr), offset(0), numOfAcqured(0)
 			{}
 
 			void* data;
@@ -290,13 +299,32 @@ namespace ThreadIO
 		public:
 
 			DataPool(size_t dataSize, size_t poolSize, bool& success) noexcept :
-				dataSize_(dataSize), dataList_(poolSize, success)
+				dataSize_(dataSize), dataList_()
 			{
+				for (size_t i = 0; i < poolSize; i++)
+				{
+					if (dataList_.pushFront())
+					{
+						void* data = std::malloc(dataSize);
 
+						if (data == nullptr)
+						{
+							clear();
+							success = false;
+							return;
+						}
+
+						dataList_.front().data = data;
+					}
+				}
+
+				dataList_.resetCurrent();
+				success = true;
 			}
 
 			~DataPool()
 			{
+				clear();
 			}
 
 			bool tryAcquire(UniqueData& data, size_t size) noexcept 
@@ -307,9 +335,42 @@ namespace ThreadIO
 			{}
 
 
-			bool tryHeapAcquire(UniqueData& data, size_t size) noexcept 
-			{}
+			bool tryHeapAcquire(UniqueData& uniqueData, size_t size) noexcept
+			{
+				void* data = std::malloc(size);
 
+				if (data == nullptr)
+					return false;
+
+				uniqueData.set(data, nullptr, true);
+				return true;
+			}
+
+			//del
+			void info()
+			{
+				dataList_.forEach(
+					[](const Data& dt) 
+					{
+						std::cout << "offset: " << dt.offset << " NOA: " << dt.numOfAcqured.load(std::memory_order_acquire) << std::endl;
+					});
+			}
+
+			void clear()
+			{
+				dataList_.forEach(
+					[](Data& data) 
+					{ 
+						std::free(data.data); 
+					});
+
+				dataList_.clear();
+			}
+
+			size_t size()
+			{
+				return dataList_.size();
+			}
 
 		private:
 
