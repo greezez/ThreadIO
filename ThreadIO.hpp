@@ -27,7 +27,7 @@ namespace ThreadIO
 			{
 				for (size_t i = 0; i < size; i++)
 				{
-					if (!push())
+					if (!pushFront())
 					{
 						clear();
 						success = false;
@@ -57,9 +57,9 @@ namespace ThreadIO
 			}
 
 
-			bool push() noexcept
+			bool pushFront() noexcept
 			{
-				Node* node = createNode();
+				Node* node = new(std::nothrow) Node;
 
 				if (node == nullptr)
 					return false;
@@ -76,7 +76,7 @@ namespace ThreadIO
 			}
 
 
-			void pop() noexcept
+			void popFront() noexcept
 			{
 				if (head_ == nullptr)
 					return;
@@ -102,43 +102,28 @@ namespace ThreadIO
 			}
 
 
-			bool insertAndUpdateCurrent() noexcept
+			T* insertAndUpdateCurrent() noexcept
 			{
 				if (head_ == nullptr)
 				{
-					if (!push())
-						return false;
+					if (pushFront())
+						return &current_->item;
 
-					current_ = head_;
-					return true;
+					return nullptr;
 				}
 
-				Node* node = createNode();
+				Node* node = new(std::nothrow) Node;
 
 				if (node == nullptr)
-					return false;
+					return nullptr;
 
 				node->next = current_->next;
 				current_->next = node;
-				current_ = node;
+				current_ = node->next;
 
 				size_++;
 
-				return true;
-			}
-
-
-			template<typename Fn>
-			void forEach(Fn fn) 
-			{
-				Node* node = head_;
-
-				while (node != nullptr)
-				{
-					fn(node->item);
-
-					node = node->next;
-				}
+				return &node->item;
 			}
 
 
@@ -159,22 +144,23 @@ namespace ThreadIO
 			}
 
 
-			size_t size() noexcept
+			template<typename Fn>
+			void forEach(Fn fn)
 			{
-				return size_;
+				Node* node = head_;
+
+				while (node != nullptr)
+				{
+					fn(node->item);
+
+					node = node->next;
+				}
 			}
 
 
-		private:
-
-			Node* createNode() noexcept
+			size_t size() noexcept
 			{
-				Node* node = new(std::nothrow) Node;
-
-				if (node == nullptr)
-					return nullptr;
-
-				return node;
+				return size_;
 			}
 
 
@@ -188,57 +174,65 @@ namespace ThreadIO
 		};
 
 
-
-		class Data
+		struct Data
 		{
+
+			Data() noexcept : data(nullptr), offset(0), numOfAcqured(0) 
+			{}
+
+			void* data;
+			size_t offset;
+			std::atomic_size_t numOfAcqured;
+
+		};
+		
+		class DataPool;
+
+		class UniqueData
+		{
+
+			friend class DataPool;
+
 		public:
-			Data(size_t size, bool& success) noexcept : 
-				data_(nullptr), size_(size), offset_(0), numOfAcquired_(0)
+
+			UniqueData()
 			{
 			}
 
-			~Data()
+			~UniqueData()
 			{
 			}
-
-			void* acquire(size_t size) noexcept
-			{
-			}
-
-			void release() 
-			{}
-
-			size_t numOfAcquired()
-			{}
-
-			const void* get()
-			{}
 
 		private:
-
-			void* data_;
-			size_t size_;
-			size_t offset_;
-
-			std::atomic_size_t numOfAcquired_;
 
 		};
 
 
-
 		class DataPool
 		{
+
 		public:
-			DataPool()
+
+			DataPool(size_t dataSize, size_t poolSize, bool& success) noexcept :
+				dataSize_(dataSize), dataList_(poolSize, success)
 			{
+
 			}
 
 			~DataPool()
 			{
 			}
 
+			bool tryAcquire() noexcept {}
+			bool acquire() noexcept {}
+
+			bool tryHeapAcquire() noexcept {}
+
 		private:
 
+			size_t dataSize_;
+			List<Data> dataList_;
+			
 		};
 
 	}
